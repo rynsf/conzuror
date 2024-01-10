@@ -1,7 +1,6 @@
 import pygame
 import random
 
-
 TILE_SIZE = 50
 WIDTH = 500
 HEIGHT = 500
@@ -50,7 +49,22 @@ class Compy():
             self.direction['N'] = True
             self.direction['W'] = False
 
-    def 
+    def moveNorth(self):
+        if map[self.y-1][self.x] != 1:
+            self.y -= 1
+        
+    def moveSouth(self):
+        if map[self.y+1][self.x] != 1:
+            self.y += 1
+            
+    def moveEast(self):
+        if map[self.y][self.x+1] != 1:
+            self.x += 1
+            
+    def moveWest(self):
+        if map[self.y][self.x-1] != 1:
+            self.x -= 1
+            
     def render(self):
         pygame.draw.rect(screen, 
                          "red", 
@@ -125,7 +139,7 @@ pygame.display.set_caption("Conzuror")
 running = True
 clock = pygame.time.Clock()
 compy = Compy(1, 1)
-map = [[1 if m%2 else n%2 for n in range(1, 1000)] for m in range(1, 1000)] # TODO remove magic numbers TODO find a better way to represent maps
+map = [[1 if m%2 else n%2 for n in range(1, 1000)] for m in range(1, 1000)] # TODO remove magic numbers, too many magic numbers in the map TODO find a better way to represent maps
 mazeGen()
 map[len(map)-2][len(map[0])-2] = 3
 
@@ -135,17 +149,13 @@ while running:
             running = False
         if e.type == pygame.KEYDOWN:
             if e.key == pygame.K_w:
-                if map[compy.y-1][compy.x] != 1:
-                    compy.y -= 1
+                compy.moveNorth()
             if e.key == pygame.K_s:
-                if map[compy.y+1][compy.x] != 1:
-                    compy.y += 1
+                compy.moveSouth()
             if e.key == pygame.K_a:
-                if map[compy.y][compy.x-1] != 1:
-                    compy.x -= 1
+                compy.moveWest()
             if e.key == pygame.K_d:
-                if map[compy.y][compy.x+1] != 1:
-                    compy.x += 1
+                compy.moveEast()
 
     render()
     checkWin()
