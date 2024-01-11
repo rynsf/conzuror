@@ -1,3 +1,5 @@
+import sys
+
 Symbol = str
 Number = (int, float)
 Atom = (Symbol, Number)
@@ -42,8 +44,8 @@ def atom(token):
         except ValueError:
             return Symbol(token)
 
-def read():
-    return parse(tokenizer(input("> ")))
+def read(s: str):
+    return parse(tokenizer(s))
 
 def evaluate(x, env=global_env):
     if isinstance(x, Symbol):
@@ -77,5 +79,6 @@ def schemestr(exp):
     else:
         return str(exp)
 
-repl()
+if __name__ == '__main__':
+    repl()
 

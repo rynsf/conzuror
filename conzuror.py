@@ -1,5 +1,8 @@
 import pygame
 import random
+import select
+import sys
+import spell
 
 TILE_SIZE = 50
 WIDTH = 500
@@ -112,6 +115,20 @@ def getTile(x, y):
 def checkWin():
     if map[compy.y][compy.x] == 3:
         print("you won")
+
+def repl():
+    global toPrompt
+    if toPrompt:
+        print("> ", end='', flush=True)
+        toPrompt = False 
+    if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
+        s = sys.stdin.readline()
+        val = spell.evaluate(spell.read(s))
+        toPrompt = True
+        if val is not None:
+            print(spell.schemestr(val))
+
+
 def render():
     screen.fill("white")
     for y in range(11):
@@ -137,13 +154,24 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Conzuror")
 
 running = True
+toPrompt = True
 clock = pygame.time.Clock()
 compy = Compy(1, 1)
-map = [[1 if m%2 else n%2 for n in range(1, 1000)] for m in range(1, 1000)] # TODO remove magic numbers, too many magic numbers in the map TODO find a better way to represent maps
+map = [[1 if m%2 else n%2 for n in range(1, 100)] for m in range(1, 100)] # TODO remove magic numbers, too many magic numbers in the map TODO find a better way to represent maps
 mazeGen()
 map[len(map)-2][len(map[0])-2] = 3
 
+spell.global_env["move-north"] = compy.moveNorth
+spell.global_env["move-south"] = compy.moveSouth
+spell.global_env["move-east"] = compy.moveEast
+spell.global_env["move-west"] = compy.moveWest
+
+print()
+print("Welcome to Conzuror!")
+print("Ready to cast spells and conjure the spirit of the computer!")
+
 while running:
+    repl()
     for e in pygame.event.get():
         if e.type == pygame.QUIT:
             running = False
