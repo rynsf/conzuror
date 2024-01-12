@@ -52,22 +52,38 @@ class Compy():
             self.direction['N'] = True
             self.direction['W'] = False
 
+    def canMoveNorth(self):
+        return map[self.y-1][self.x] != 1
+
     def moveNorth(self):
-        if map[self.y-1][self.x] != 1:
+        if self.canMoveNorth():
             self.y -= 1
         
+    def canMoveSouth(self):
+        return map[self.y+1][self.x] != 1
+
     def moveSouth(self):
-        if map[self.y+1][self.x] != 1:
+        if self.canMoveSouth():
             self.y += 1
-            
+    
+    def canMoveEast(self):
+        return map[self.y][self.x+1] != 1
+
     def moveEast(self):
-        if map[self.y][self.x+1] != 1:
+        if self.canMoveEast():
             self.x += 1
             
+    def canMoveWest(self):
+        return map[self.y][self.x-1] != 1
+
     def moveWest(self):
-        if map[self.y][self.x-1] != 1:
+        if self.canMoveWest():
             self.x -= 1
             
+    def isWon(self):
+        if map[self.y][self.x] == 3:
+            return True
+
     def render(self):
         pygame.draw.rect(screen, 
                          "red", 
@@ -112,10 +128,6 @@ def getTile(x, y):
 
     return map[y][x]
     
-def checkWin():
-    if map[compy.y][compy.x] == 3:
-        print("you won")
-
 def repl():
     global toPrompt
     if toPrompt:
@@ -165,6 +177,10 @@ spell.global_env["move-north"] = compy.moveNorth
 spell.global_env["move-south"] = compy.moveSouth
 spell.global_env["move-east"] = compy.moveEast
 spell.global_env["move-west"] = compy.moveWest
+spell.global_env["can-move-north"] = compy.canMoveNorth
+spell.global_env["can-move-south"] = compy.canMoveSouth
+spell.global_env["can-move-east"] = compy.canMoveEast
+spell.global_env["can-move-west"] = compy.canMoveWest
 
 print()
 print("Welcome to Conzuror!")
@@ -186,7 +202,9 @@ while running:
                 compy.moveEast()
 
     render()
-    checkWin()
+    if compy.isWon():
+        print("You Won")
+
     clock.tick(60) 
 
 pygame.quit()
