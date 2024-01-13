@@ -1,4 +1,4 @@
-import sys
+import operator as op
 
 Symbol = str
 Number = (int, float)
@@ -12,6 +12,20 @@ def add(*args):
         sum += a
     return sum
 
+def sub(*args):
+    if len(args) == 1:
+        return -args[0]
+    sum = args[0]
+    for n in args[1:]:
+        sum -= n
+    return sum
+
+def mul(*args):
+    sum = 1
+    for n in args:
+        sum *= n
+    return sum
+
 class Env(dict):
     def __init__(self, parms=(), args=(), outer=None):
         self.update(zip(parms, args))
@@ -23,8 +37,30 @@ class Env(dict):
 
 global_env = Env()
 global_env.update({
-    '+': add,
+    '+':add, '-':sub, '*':mul, '/':op.truediv, 
+    '>':op.gt, '<':op.lt, '>=':op.ge, '<=':op.le, '=':op.eq, 
+    'abs':     abs,
+    'append':  op.add,  
+    'begin':   lambda *x: x[-1],
+    'car':     lambda x: x[0],
+    'cdr':     lambda x: x[1:], 
+    'cons':    lambda x,y: [x] + y,
+    'eq?':     op.is_, 
+    'equal?':  op.eq, 
+    'length':  len, 
+    'list':    lambda *x: list(x), 
+    'list?':   lambda x: isinstance(x,list), 
+    'map':     map,
+    'max':     max,
+    'min':     min,
+    'not':     op.not_,
+    'null?':   lambda x: x == [], 
+    'number?': lambda x: isinstance(x, Number),   
+    'procedure?': callable,
+    'round':   round,
+    'symbol?': lambda x: isinstance(x, Symbol),
 })
+
 
 class Procedure(object):
     def __init__(self, parms, body, env):
