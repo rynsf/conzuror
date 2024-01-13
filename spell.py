@@ -5,7 +5,6 @@ Number = (int, float)
 Atom = (Symbol, Number)
 List = list
 Exp = (List, Atom)
-Env = dict
 
 def add(*args):
     sum = 0
@@ -13,9 +12,26 @@ def add(*args):
         sum += a
     return sum
 
-global_env = {
+class Env(dict):
+    def __init__(self, parms=(), args=(), outer=None):
+        self.update(zip(parms, args))
+        self.outer = outer
+
+    def find(self, var):
+        return self if (var in self) else self.outer.find(var)
+
+
+global_env = Env()
+global_env.update({
     '+': add,
-}
+})
+
+class Procedure(object):
+    def __init__(self, parms, body, env):
+        self.parms, self.body, self.env = parms, body, env
+    def __call__(self, *args):
+        return evaluate(self.body, Env(self.parms, args, self.env))
+
 
 def tokenizer(s):
     return s.replace('(', ' ( ').replace(')', ' ) ').split()
@@ -49,8 +65,8 @@ def read(s: str):
 
 def evaluate(x, env=global_env):
     if isinstance(x, Symbol):
-        return env[x]
-    elif isinstance(x, Number):
+        return env.find(x)[x]
+    elif not isinstance(x, List):
         return x
     elif x[0] == 'if':
         (_, test, conseq, alt) = x
@@ -59,6 +75,9 @@ def evaluate(x, env=global_env):
     elif x[0] == 'define':
         (_, symbol, exp) = x
         env[symbol] = evaluate(exp, env)
+    elif x[0] == 'lambda':
+        (_, parms, body) = x
+        return Procedure(parms, body, env)
     else:
         proc = evaluate(x[0], env)
         args = [evaluate(arg, env) for arg in x[1:]]
@@ -69,7 +88,8 @@ def evaluate(x, env=global_env):
 
 def repl():
     while True:
-        val = evaluate(read())
+        s = input("> ")
+        val = evaluate(read(s))
         if val is not None:
             print(schemestr(val))
 
