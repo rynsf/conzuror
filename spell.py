@@ -106,7 +106,7 @@ def evaluate(x, env=global_env):
         return x
     elif x[0] == 'if':
         (_, test, conseq, alt) = x
-        exp = (conseq if eval(test, env) else alt)
+        exp = (conseq if evaluate(test, env) else alt)
         return evaluate(exp, env)
     elif x[0] == 'define':
         (_, symbol, exp) = x
