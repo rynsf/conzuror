@@ -12,9 +12,9 @@ class Compy():
     def __init__(self, x, y):
         self.x = x # coordinates on the tile system
         self.y = y
-        self.direction = {'N':True, 'S':False, 'E':False, 'W':False} # TODO a better way to store directions
+        self.direction = {'N':True, 'S':False, 'E':False, 'W':False} # TODO a better way to store directions? do I really need direction now?
         
-    def move_forward(self):
+    def move_forward(self): # Why did I write this?
         if self.direction['N']:
             self.y -= 1
         if self.direction['S']:
@@ -24,7 +24,7 @@ class Compy():
         if self.direction['W']:
             self.x -= 1
 
-    def turn_right(self):
+    def turn_right(self): # Why did I write this?
         if self.direction['N']:
             self.direction['W'] = True
             self.direction['N'] = False
@@ -38,7 +38,7 @@ class Compy():
             self.direction['S'] = True
             self.direction['W'] = False
 
-    def turn_left(self):
+    def turn_left(self): # Why did I write this?
         if self.direction['N']:
             self.direction['E'] = True
             self.direction['N'] = False
@@ -58,6 +58,7 @@ class Compy():
     def moveNorth(self):
         if self.canMoveNorth():
             self.y -= 1
+        render()
         
     def canMoveSouth(self):
         return map[self.y+1][self.x] != 1
@@ -65,6 +66,7 @@ class Compy():
     def moveSouth(self):
         if self.canMoveSouth():
             self.y += 1
+        render()
     
     def canMoveEast(self):
         return map[self.y][self.x+1] != 1
@@ -72,6 +74,7 @@ class Compy():
     def moveEast(self):
         if self.canMoveEast():
             self.x += 1
+        render()
             
     def canMoveWest(self):
         return map[self.y][self.x-1] != 1
@@ -79,6 +82,7 @@ class Compy():
     def moveWest(self):
         if self.canMoveWest():
             self.x -= 1
+        render()
             
     def isWon(self):
         if map[self.y][self.x] == 3:
@@ -159,6 +163,7 @@ def render():
                                  TILE_SIZE))
     compy.render()
     pygame.display.flip()
+    clock.tick(60) 
 
 pygame.init()
 
@@ -204,7 +209,5 @@ while running:
     render()
     if compy.isWon():
         print("You Won")
-
-    clock.tick(60) 
 
 pygame.quit()
