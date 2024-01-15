@@ -7,7 +7,7 @@ import spell
 TILE_SIZE = 50
 WIDTH = 500
 HEIGHT = 500
-SPELL_PER_SECOND = 10
+SPELL_PER_SECOND = 20
 FPS = 60
 
 class Compy():
@@ -211,7 +211,7 @@ running = True
 toPrompt = True
 clock = pygame.time.Clock()
 compy = Compy(1, 1)
-map = [[1 if m%2 else n%2 for n in range(1, 16)] for m in range(1, 16)] # TODO remove magic numbers, too many magic numbers in the map TODO find a better way to represent maps
+map = [[1 if m%2 else n%2 for n in range(1, 100)] for m in range(1, 100)] # TODO remove magic numbers, too many magic numbers in the map TODO find a better way to represent maps
 mazeGen()
 map[len(map)-2][len(map[0])-2] = 3
 

@@ -100,24 +100,33 @@ def read(s: str):
     return parse(tokenizer(s))
 
 def evaluate(x, env=global_env):
-    if isinstance(x, Symbol):
-        return env.find(x)[x]
-    elif not isinstance(x, List):
-        return x
-    elif x[0] == 'if':
-        (_, test, conseq, alt) = x
-        exp = (conseq if evaluate(test, env) else alt)
-        return evaluate(exp, env)
-    elif x[0] == 'define':
-        (_, symbol, exp) = x
-        env[symbol] = evaluate(exp, env)
-    elif x[0] == 'lambda':
-        (_, parms, body) = x
-        return Procedure(parms, body, env)
-    else:
-        proc = evaluate(x[0], env)
-        args = [evaluate(arg, env) for arg in x[1:]]
-        return proc(*args)
+    while True:
+        if isinstance(x, Symbol):
+            return env.find(x)[x]
+        elif not isinstance(x, List):
+            return x
+        elif x[0] == 'if':
+            (_, test, conseq, alt) = x
+            x = (conseq if evaluate(test, env) else alt)
+        elif x[0] == 'define':
+            (_, symbol, exp) = x
+            env[symbol] = evaluate(exp, env)
+            return None
+        elif x[0] == 'lambda':
+            (_, parms, body) = x
+            return Procedure(parms, body, env)
+        elif x[0] == 'begin':
+            for exp in x[1:-1]:
+                evaluate(exp, env)
+            x = x[-1]
+        else:
+            exps = [evaluate(exp, env) for exp in x]
+            proc = exps.pop(0)
+            if isinstance(proc, Procedure):
+                x = proc.body
+                env = Env(proc.parms, exps, proc.env)
+            else:
+                return proc(*exps)
 
 #print(read())
 #print(tokenizer("(this is a lisp expression (+ 1 2 3))"))
