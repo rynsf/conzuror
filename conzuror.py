@@ -7,49 +7,86 @@ import spell
 TILE_SIZE = 50
 WIDTH = 500
 HEIGHT = 500
+SPELL_PER_SECOND = 10
+FPS = 60
 
 class Compy():
     def __init__(self, x, y):
         self.x = x # coordinates on the tile system
         self.y = y
-        self.direction = {'N':True, 'S':False, 'E':False, 'W':False} # TODO a better way to store directions? do I really need direction now?
+        self.direction = {'N':True, 'S':False, 'E':False, 'W':False} # TODO a better way to store directions?
         
-    def move_forward(self): # Why did I write this?
+    def canMoveForward(self):
         if self.direction['N']:
-            self.y -= 1
+            return self.canMoveNorth()
         if self.direction['S']:
-            self.y += 1
+            return self.canMoveSouth()
         if self.direction['E']:
-            self.x += 1
+            return self.canMoveEast()
         if self.direction['W']:
-            self.x -= 1
+            return self.canMoveWest()
 
-    def turn_right(self): # Why did I write this?
+    def moveForward(self):
         if self.direction['N']:
-            self.direction['W'] = True
+            if self.canMoveForward():
+                self.y -= 1
+        if self.direction['S']:
+            if self.canMoveForward():
+                self.y += 1
+        if self.direction['E']:
+            if self.canMoveForward():
+                self.x += 1
+        if self.direction['W']:
+            if self.canMoveForward():
+                self.x -= 1
+        render(SPELL_PER_SECOND)
+
+    def canMoveRight(self):
+        if self.direction['N']:
+            return self.canMoveEast()
+        if self.direction['S']:
+            return self.canMoveWest()
+        if self.direction['E']:
+            return self.canMoveSouth()
+        if self.direction['W']:
+            return self.canMoveNorth()
+
+    def turnRight(self): 
+        if self.direction['N']:
+            self.direction['E'] = True
             self.direction['N'] = False
         elif self.direction['S']:
-            self.direction['E'] = True
+            self.direction['W'] = True
             self.direction['S'] = False
         elif self.direction['E']:
-            self.direction['N'] = True
+            self.direction['S'] = True
             self.direction['E'] = False
         elif self.direction['W']:
-            self.direction['S'] = True
+            self.direction['N'] = True
             self.direction['W'] = False
 
-    def turn_left(self): # Why did I write this?
+    def canMoveLeft(self):
         if self.direction['N']:
-            self.direction['E'] = True
+            return self.canMoveWest()
+        if self.direction['S']:
+            return self.canMoveEast()
+        if self.direction['E']:
+            return self.canMoveNorth()
+        if self.direction['W']:
+            return self.canMoveSouth()
+    
+    def turnLeft(self):
+        if self.direction['N']:
+            self.direction['W'] = True
             self.direction['N'] = False
         elif self.direction['S']:
-            self.direction['W'] = True
+            self.direction['E'] = True
             self.direction['S'] = False
         elif self.direction['E']:
-            self.direction['S'] = True
+            self.direction['N'] = True
             self.direction['E'] = False
         elif self.direction['W']:
-            self.direction['N'] = True
+            self.direction['S'] = True
             self.direction['W'] = False
 
     def canMoveNorth(self):
@@ -58,7 +95,7 @@ class Compy():
     def moveNorth(self):
         if self.canMoveNorth():
             self.y -= 1
-        render()
+        render(SPELL_PER_SECOND)
         
     def canMoveSouth(self):
         return map[self.y+1][self.x] != 1
@@ -66,7 +103,7 @@ class Compy():
     def moveSouth(self):
         if self.canMoveSouth():
             self.y += 1
-        render()
+        render(SPELL_PER_SECOND)
     
     def canMoveEast(self):
         return map[self.y][self.x+1] != 1
@@ -74,7 +111,7 @@ class Compy():
     def moveEast(self):
         if self.canMoveEast():
             self.x += 1
-        render()
+        render(SPELL_PER_SECOND)
             
     def canMoveWest(self):
         return map[self.y][self.x-1] != 1
@@ -82,7 +119,7 @@ class Compy():
     def moveWest(self):
         if self.canMoveWest():
             self.x -= 1
-        render()
+        render(SPELL_PER_SECOND)
             
     def isWon(self):
         if map[self.y][self.x] == 3:
@@ -145,7 +182,7 @@ def repl():
             print(spell.schemestr(val))
 
 
-def render():
+def render(hz):
     screen.fill("white")
     for y in range(11):
         for x in range(11):
@@ -163,7 +200,7 @@ def render():
                                  TILE_SIZE))
     compy.render()
     pygame.display.flip()
-    clock.tick(60) 
+    clock.tick(hz) 
 
 pygame.init()
 
@@ -174,7 +211,7 @@ running = True
 toPrompt = True
 clock = pygame.time.Clock()
 compy = Compy(1, 1)
-map = [[1 if m%2 else n%2 for n in range(1, 100)] for m in range(1, 100)] # TODO remove magic numbers, too many magic numbers in the map TODO find a better way to represent maps
+map = [[1 if m%2 else n%2 for n in range(1, 16)] for m in range(1, 16)] # TODO remove magic numbers, too many magic numbers in the map TODO find a better way to represent maps
 mazeGen()
 map[len(map)-2][len(map[0])-2] = 3
 
@@ -186,6 +223,13 @@ spell.global_env["can-move-north"] = compy.canMoveNorth
 spell.global_env["can-move-south"] = compy.canMoveSouth
 spell.global_env["can-move-east"] = compy.canMoveEast
 spell.global_env["can-move-west"] = compy.canMoveWest
+spell.global_env["is-won"] = compy.isWon
+spell.global_env["can-move-right"] = compy.canMoveRight
+spell.global_env["turn-right"] = compy.turnRight
+spell.global_env["can-move-left"] = compy.canMoveLeft
+spell.global_env["turn-left"] = compy.turnLeft
+spell.global_env["can-move-forward"] = compy.canMoveForward
+spell.global_env["move-forward"] = compy.moveForward
 
 print()
 print("Welcome to Conzuror!")
@@ -206,7 +250,7 @@ while running:
             if e.key == pygame.K_d:
                 compy.moveEast()
 
-    render()
+    render(FPS)
     if compy.isWon():
         print("You Won")
 
