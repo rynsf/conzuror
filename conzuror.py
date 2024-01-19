@@ -7,7 +7,7 @@ import spell
 TILE_SIZE = 50
 WIDTH = 500
 HEIGHT = 500
-SPELL_PER_SECOND = 20
+SPELL_PER_SECOND = 2
 FPS = 60
 
 class Compy():
@@ -171,16 +171,25 @@ def getTile(x, y):
     
 def repl():
     global toPrompt
+    global numOpenParen
+    global prompt
     if toPrompt:
         print("> ", end='', flush=True)
         toPrompt = False 
     if select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], []):
         s = sys.stdin.readline()
-        val = spell.evaluate(spell.read(s))
-        toPrompt = True
-        if val is not None:
-            print(spell.schemestr(val))
-
+        for i in s:
+            if i == '(':
+                numOpenParen += 1
+            if i == ')':
+                numOpenParen -= 1
+        prompt += s
+        if numOpenParen == 0:
+            val = spell.evaluate(spell.read(prompt))
+            prompt = ""
+            toPrompt = True
+            if val is not None:
+                print(spell.schemestr(val))
 
 def render(hz):
     screen.fill("white")
@@ -261,6 +270,8 @@ pygame.display.set_caption("Conzuror")
 
 running = True
 toPrompt = True
+numOpenParen = 0
+prompt = ""
 clock = pygame.time.Clock()
 compy = Compy(1, 1)
 map = [[1 if m%2 else n%2 for n in range(1, 100)] for m in range(1, 100)] # TODO remove magic numbers, too many magic numbers in the map TODO find a better way to represent maps
