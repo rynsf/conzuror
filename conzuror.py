@@ -7,7 +7,7 @@ import spell
 TILE_SIZE = 50
 WIDTH = 500
 HEIGHT = 500
-SPELL_PER_SECOND = 2
+SPELL_PER_SECOND = 20
 FPS = 60
 
 class Compy():
@@ -132,6 +132,26 @@ class Compy():
                           (HEIGHT/2) - (TILE_SIZE/2),
                           TILE_SIZE, 
                           TILE_SIZE))
+        if self.direction["N"]:
+            triangle = ((WIDTH/2, HEIGHT/2 - 10), 
+                        (WIDTH/2 - 10, HEIGHT/2 + 10), 
+                        (WIDTH/2 + 10, HEIGHT/2 + 10))
+        if self.direction["S"]:
+            triangle = ((WIDTH/2 + 10, HEIGHT/2 - 10), 
+                        (WIDTH/2 - 10, HEIGHT/2 - 10), 
+                        (WIDTH/2, HEIGHT/2 + 10))
+        if self.direction["E"]:
+            triangle = ((WIDTH/2 - 10, HEIGHT/2 - 10), 
+                        (WIDTH/2 - 10, HEIGHT/2 + 10), 
+                        (WIDTH/2 + 10, HEIGHT/2))
+        if self.direction["W"]:
+            triangle = ((WIDTH/2 - 10, HEIGHT/2), 
+                        (WIDTH/2 + 10, HEIGHT/2 - 10), 
+                        (WIDTH/2 + 10, HEIGHT/2 + 10))
+
+        pygame.draw.polygon(screen,
+                            "white",
+                            triangle)
 
 
 def mazeGen():
