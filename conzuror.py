@@ -3,12 +3,8 @@ import random
 import select
 import sys
 import spell
-
-TILE_SIZE = 50
-WIDTH = 500
-HEIGHT = 500
-SPELL_PER_SECOND = 20
-FPS = 60
+import hanoi
+from constant import *
 
 class Compy():
     def __init__(self, x, y):
@@ -90,7 +86,7 @@ class Compy():
             self.direction['W'] = False
 
     def canMoveNorth(self):
-        return map[self.y-1][self.x] != 1
+        return map[self.y-1][self.x] == 0 # TODO write a collison detections system
 
     def moveNorth(self):
         if self.canMoveNorth():
@@ -98,7 +94,7 @@ class Compy():
         render(SPELL_PER_SECOND)
         
     def canMoveSouth(self):
-        return map[self.y+1][self.x] != 1
+        return map[self.y+1][self.x] == 0 # TODO write a collison detections system
 
     def moveSouth(self):
         if self.canMoveSouth():
@@ -106,7 +102,7 @@ class Compy():
         render(SPELL_PER_SECOND)
     
     def canMoveEast(self):
-        return map[self.y][self.x+1] != 1
+        return map[self.y][self.x+1] == 0 # TODO write a collison detections system
 
     def moveEast(self):
         if self.canMoveEast():
@@ -114,7 +110,7 @@ class Compy():
         render(SPELL_PER_SECOND)
             
     def canMoveWest(self):
-        return map[self.y][self.x-1] != 1
+        return map[self.y][self.x-1] == 0 # TODO write a collison detections system
 
     def moveWest(self):
         if self.canMoveWest():
@@ -153,8 +149,25 @@ class Compy():
                             "white",
                             triangle)
 
+def initLevel():
+    global map, level, towerOfHanoi
+    if level == 0:
+        mazeGen()
+        map[len(map)-2][len(map[0])-2] = 3
+    elif level == 1:
+        maxx = 10
+        maxy = 10
+        map = [[0 for n in range(maxx)] for m in range(maxy)]
+        for n in range(maxy):
+            for m in range(maxx):
+                if m == 0 or m == len(map[0]) - 1 or n == 0 or n == len(map) - 1: 
+                    map[n][m] = 1
+        towerOfHanoi = hanoi.Hanoi(2, 4, screen, map, render)
+        spell.global_env["hanoi"] = towerOfHanoi.move
 
 def mazeGen():
+    global map
+    map = [[1 if m%2 else n%2 for n in range(1, 100)] for m in range(1, 100)] # TODO remove magic numbers, too many magic numbers in the map TODO find a better way to represent maps
     stack = []
     c = [1, 1]
     stack.insert(-1, c) 
@@ -212,6 +225,7 @@ def repl():
                 print(spell.schemestr(val))
 
 def render(hz):
+    drawHanoi = False
     screen.fill("white")
     for y in range(11):
         for x in range(11):
@@ -227,6 +241,12 @@ def render(hz):
                                  y*TILE_SIZE - (TILE_SIZE/2),
                                  TILE_SIZE,
                                  TILE_SIZE))
+            elif isinstance(getTile(compy.x-5+x, compy.y-5+y), hanoi.Hanoi) and not drawHanoi:
+                drawHanoi = True
+
+    if drawHanoi:
+        towerOfHanoi.render(compy.x, compy.y)
+
     compy.render()
     pygame.display.flip()
     clock.tick(hz) 
@@ -288,15 +308,17 @@ pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Conzuror")
 
+map = []
 running = True
 toPrompt = True
 numOpenParen = 0
+towerOfHanoi = None
+level = 1
 prompt = ""
 clock = pygame.time.Clock()
 compy = Compy(1, 1)
-map = [[1 if m%2 else n%2 for n in range(1, 100)] for m in range(1, 100)] # TODO remove magic numbers, too many magic numbers in the map TODO find a better way to represent maps
-mazeGen()
-map[len(map)-2][len(map[0])-2] = 3
+
+initLevel()
 
 spell.global_env["move-north"] = compy.moveNorth
 spell.global_env["move-south"] = compy.moveSouth
