@@ -193,6 +193,7 @@ def mazeGen():
                 map[(c[0]+chosen_cell[0])//2][c[1]] = 2
             map[chosen_cell[0]][chosen_cell[1]] = 2
             stack.insert(-1, chosen_cell)
+    map = [[1 if m == 1 else 0 for m in n] for n in map]
 
 
 def getTile(x, y):
@@ -262,7 +263,7 @@ running = True
 toPrompt = True
 numOpenParen = 0
 towerOfHanoi = None
-level = 1
+level = 0
 prompt = ""
 clock = pygame.time.Clock()
 compy = Compy(1, 1)
