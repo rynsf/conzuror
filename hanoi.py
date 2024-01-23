@@ -25,6 +25,12 @@ class Hanoi():
                 return
         print("Invalid move")
 
+    def solved(self):
+        if (self.stacks[1] == [n for n in range(1, 11)] or 
+            self.stacks[2] == [n for n in range(1, 11)]): # Is there a better way to do this?
+            return True
+        return False
+
     def render(self, playerx, playery):
         surface = pygame.Surface((self.w, self.h))
         surface.fill("white")
