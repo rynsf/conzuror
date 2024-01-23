@@ -118,10 +118,6 @@ class Compy():
             self.x -= 1
         render(SPELL_PER_SECOND)
             
-    def isWon(self):
-        if map[self.y][self.x] == 3:
-            return True
-
     def render(self):
         pygame.draw.rect(screen, 
                          "red", 
@@ -153,9 +149,13 @@ class Compy():
 def initLevel():
     global map, level, towerOfHanoi
     if level == 0:
+        compy.x = 1
+        compy.y = 1
         mazeGen()
         map[len(map)-2][len(map[0])-2] = 3
     elif level == 1:
+        compy.x = 1
+        compy.y = 1
         maxx = 10
         maxy = 10
         map = [[0 for n in range(maxx)] for m in range(maxy)]
@@ -226,6 +226,17 @@ def repl():
             if val is not None:
                 print(spell.schemestr(val))
 
+def mazeReached():
+    if map[compy.y][compy.x] == 3:
+        return True
+    return False
+
+def isWon():
+    if level == 0:
+        return mazeReached()
+    if level == 1:
+        return towerOfHanoi.solved()
+
 def render(hz):
     drawHanoi = False
     screen.fill("white")
@@ -250,12 +261,18 @@ def render(hz):
         towerOfHanoi.render(compy.x, compy.y)
 
     compy.render()
+    if gameState == ENDGAME:
+        surface =  font.render("You Won", True, "black", "white")
+        rect = surface.get_rect()
+        screen.blit(surface, (WIDTH/2 - rect.w/2, HEIGHT/2 - rect.h/2, rect.w, rect.h))
+
     pygame.display.flip()
     clock.tick(hz) 
 
 pygame.init()
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
+font = pygame.font.Font(None, 128)
 pygame.display.set_caption("Conzuror")
 
 map = []
@@ -263,6 +280,7 @@ running = True
 toPrompt = True
 numOpenParen = 0
 towerOfHanoi = None
+gameState = PLAYING
 level = 0
 prompt = ""
 clock = pygame.time.Clock()
@@ -278,7 +296,7 @@ spell.global_env["can-move-north?"] = compy.canMoveNorth
 spell.global_env["can-move-south?"] = compy.canMoveSouth
 spell.global_env["can-move-east?"] = compy.canMoveEast
 spell.global_env["can-move-west?"] = compy.canMoveWest
-spell.global_env["is-won?"] = compy.isWon
+spell.global_env["maze-reached?"] = mazeReached
 spell.global_env["can-move-right?"] = compy.canMoveRight
 spell.global_env["turn-right"] = compy.turnRight
 spell.global_env["can-move-left?"] = compy.canMoveLeft
@@ -305,9 +323,14 @@ while running:
                 compy.moveWest()
             if e.key == pygame.K_d:
                 compy.moveEast()
+            if e.key == pygame.K_SPACE:
+                gameState = PLAYING
+                level = (level+1) % 2 # We have two levels cycle them
+                initLevel()
 
     render(FPS)
-    if compy.isWon():
-        print("You Won")
+    if isWon():
+        gameState = ENDGAME
+
 
 pygame.quit()
