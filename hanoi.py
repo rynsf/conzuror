@@ -7,6 +7,7 @@ class Hanoi():
         self.y = y
         self.w = 300
         self.h = 150
+        self.collide = True
         self.stacks = [[n for n in range(1, 11)], [], []]
         self.renderer = renderer
         self.screen = screen

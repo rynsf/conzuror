@@ -87,7 +87,7 @@ class Compy():
             self.direction['W'] = False
 
     def canMoveNorth(self):
-        return map[self.y-1][self.x] == 0 # TODO write a collison detections system
+        return not map[self.y-1][self.x].collide # TODO write a collison detections system
 
     def moveNorth(self):
         if self.canMoveNorth():
@@ -95,7 +95,7 @@ class Compy():
         render(SPELL_PER_SECOND)
         
     def canMoveSouth(self):
-        return map[self.y+1][self.x] == 0 # TODO write a collison detections system
+        return not map[self.y+1][self.x].collide # TODO write a collison detections system
 
     def moveSouth(self):
         if self.canMoveSouth():
@@ -103,7 +103,7 @@ class Compy():
         render(SPELL_PER_SECOND)
     
     def canMoveEast(self):
-        return map[self.y][self.x+1] == 0 # TODO write a collison detections system
+        return not map[self.y][self.x+1].collide # TODO write a collison detections system
 
     def moveEast(self):
         if self.canMoveEast():
@@ -111,12 +111,12 @@ class Compy():
         render(SPELL_PER_SECOND)
             
     def canMoveWest(self):
-        return map[self.y][self.x-1] == 0 # TODO write a collison detections system
+        return not map[self.y][self.x-1].collide # TODO write a collison detections system
 
     def moveWest(self):
         if self.canMoveWest():
             self.x -= 1
-        render(SPELL_PER_SECOND)
+        render(SPELL_PER_SECOND) 
             
     def render(self):
         pygame.draw.rect(screen, 
@@ -146,23 +146,34 @@ class Compy():
                             "white",
                             triangle)
 
+class Tile():
+    def __init__(self, collide, color):
+        self.collide = collide
+        self.color = color
+
+    def render(self, rect):
+        pygame.draw.rect(screen, self.color, rect)
+
 def initLevel():
     global map, level, towerOfHanoi
     if level == 0:
+        global mazeReached
         compy.x = 1
         compy.y = 1
-        mazeGen()
-        map[len(map)-2][len(map[0])-2] = 3
+        map = mazeGen()
+        map[len(map)-2][len(map[0])-2] = Tile(False, "blue")
+        mazeReached = mazeReachedClosure(len(map)-2, len(map[0])-2)
+        spell.global_env["maze-reached?"] = mazeReached
     elif level == 1:
         compy.x = 1
         compy.y = 1
         maxx = 10
         maxy = 10
-        map = [[0 for n in range(maxx)] for m in range(maxy)]
+        map = [[EMPTY_TILE for n in range(maxx)] for m in range(maxy)]
         for n in range(maxy):
             for m in range(maxx):
                 if m == 0 or m == len(map[0]) - 1 or n == 0 or n == len(map) - 1: 
-                    map[n][m] = 1
+                    map[n][m] = WALL_TILE
         towerOfHanoi = hanoi.Hanoi(2, 4, screen, map, render)
         spell.global_env["hanoi"] = towerOfHanoi.move
 
@@ -193,14 +204,15 @@ def mazeGen():
                 map[(c[0]+chosen_cell[0])//2][c[1]] = 2
             map[chosen_cell[0]][chosen_cell[1]] = 2
             stack.insert(-1, chosen_cell)
-    map = [[1 if m == 1 else 0 for m in n] for n in map]
+    map = [[WALL_TILE if m == 1 else EMPTY_TILE for m in n] for n in map]
+    return map
 
-
-def getTile(x, y):
-    if x < 0 or x >= len(map[0]):
-        return 2
-    if y < 0 or y >= len(map):
-        return 2
+def getTile(x, y): # TODO make map a class of its own
+    if (x < 0 or 
+        x >= len(map[0]) or 
+        y < 0 or 
+        y >= len(map)):
+        return EMPTY_TILE 
 
     return map[y][x]
     
@@ -226,10 +238,12 @@ def repl():
             if val is not None:
                 print(spell.schemestr(val))
 
-def mazeReached():
-    if map[compy.y][compy.x] == 3:
-        return True
-    return False
+def mazeReachedClosure(y, x):
+    def reached():
+        if compy.y == y and compy.x == x:
+            return True
+        return False
+    return reached
 
 def isWon():
     if level == 0:
@@ -242,19 +256,13 @@ def render(hz):
     screen.fill("white")
     for y in range(11):
         for x in range(11):
-            if getTile(compy.x-5+x, compy.y-5+y) == 1:
-                pygame.draw.rect(screen, "black", 
-                                 (x*TILE_SIZE - (TILE_SIZE/2), 
-                                 y*TILE_SIZE - (TILE_SIZE/2),
-                                 TILE_SIZE,
-                                 TILE_SIZE))
-            elif getTile(compy.x-5+x, compy.y-5+y) == 3:
-                pygame.draw.rect(screen, "blue", 
-                                 (x*TILE_SIZE - (TILE_SIZE/2), 
-                                 y*TILE_SIZE - (TILE_SIZE/2),
-                                 TILE_SIZE,
-                                 TILE_SIZE))
-            elif isinstance(getTile(compy.x-5+x, compy.y-5+y), hanoi.Hanoi) and not drawHanoi:
+            tile = getTile(compy.x-5+x, compy.y-5+y)
+            if isinstance(tile, Tile):
+                tile.render((x*TILE_SIZE - (TILE_SIZE/2), 
+                             y*TILE_SIZE - (TILE_SIZE/2),
+                             TILE_SIZE,
+                             TILE_SIZE))
+            elif isinstance(tile, hanoi.Hanoi) and not drawHanoi:
                 drawHanoi = True
 
     if drawHanoi:
@@ -281,22 +289,23 @@ toPrompt = True
 numOpenParen = 0
 towerOfHanoi = None
 gameState = PLAYING
-level = 0
+EMPTY_TILE = Tile(False, "white")
+WALL_TILE = Tile(True, "black")
+level = 1
 prompt = ""
 clock = pygame.time.Clock()
 compy = Compy(1, 1)
 
 initLevel()
 
-spell.global_env["move-north"] = compy.moveNorth
-spell.global_env["move-south"] = compy.moveSouth
-spell.global_env["move-east"] = compy.moveEast
-spell.global_env["move-west"] = compy.moveWest
 spell.global_env["can-move-north?"] = compy.canMoveNorth
+spell.global_env["move-north"] = compy.moveNorth
 spell.global_env["can-move-south?"] = compy.canMoveSouth
+spell.global_env["move-south"] = compy.moveSouth
 spell.global_env["can-move-east?"] = compy.canMoveEast
+spell.global_env["move-east"] = compy.moveEast
 spell.global_env["can-move-west?"] = compy.canMoveWest
-spell.global_env["maze-reached?"] = mazeReached
+spell.global_env["move-west"] = compy.moveWest
 spell.global_env["can-move-right?"] = compy.canMoveRight
 spell.global_env["turn-right"] = compy.turnRight
 spell.global_env["can-move-left?"] = compy.canMoveLeft
